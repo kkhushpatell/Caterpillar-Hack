@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Details</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading machine details...</p>
+        </div>
+        
+        <div id="machine-info" class="machine-info hidden">
+            <div class="header">
+                <h1 id="machine-title">Machine Details</h1>
+                <div class="status-badge" id="status-badge"></div>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>Machine Information</h3>
+                    <div class="info-item">
+                        <span class="label">Machine ID:</span>
+                        <span id="machine-id"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Serial Number:</span>
+                        <span id="serial-number"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Model:</span>
+                        <span id="model-name"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Category:</span>
+                        <span id="manufacturer"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Type:</span>
+                        <span id="machine-type"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Capacity:</span>
+                        <span id="weight-capacity"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Purchase Date:</span>
+                        <span id="purchase-date"></span>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <h3>Current Status</h3>
+                    <div class="info-item">
+                        <span class="label">Status:</span>
+                        <span id="current-status"></span>
+                    </div>
+                    <div id="rental-info" class="rental-info hidden">
+                        <div class="info-item">
+                            <span class="label">Customer:</span>
+                            <span id="customer-name"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Operator:</span>
+                            <span id="operator-name"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">Start Date:</span>
+                            <span id="rental-start"></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">End Date:</span>
+                            <span id="rental-end"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="description-card">
+                <h3>Description</h3>
+                <p id="description"></p>
+            </div>
+        </div>
+        
+        <div id="error" class="error hidden">
+            <h2>Machine Not Found</h2>
+            <p>The requested machine could not be found in our database.</p>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
