@@ -85,7 +85,7 @@
                         
                         <!-- Check-in Form (when machine is rented) -->
                         <div id="checkin-form" class="status-form hidden">
-                            <button onclick="checkInMachine()" class="action-btn checkin-btn">Check In Machine</button>
+                            <button onclick="showCheckinModal()" class="action-btn checkin-btn">Check In Machine</button>
                             <p class="form-help">This will mark the machine as available and complete the current rental.</p>
                         </div>
                         
@@ -97,7 +97,7 @@
                         
                         <!-- Maintenance Form -->
                         <div class="status-form">
-                            <button onclick="setMaintenance()" class="action-btn maintenance-btn">Set to Maintenance</button>
+                            <button onclick="showMaintenanceModal()" class="action-btn maintenance-btn">Set to Maintenance</button>
                             <p class="form-help">Mark machine as under maintenance.</p>
                         </div>
                     </div>
@@ -150,6 +150,52 @@
                     <button type="submit" class="btn-primary">Check Out Machine</button>
                 </div>
             </form>
+        </div>
+    </div>
+    
+    <!-- Check-in Modal -->
+    <div id="checkin-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Check In Machine</h2>
+                <span class="close" onclick="closeCheckinModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to check in this machine?</p>
+                <p class="checkin-details">This will:</p>
+                <ul>
+                    <li>Mark the machine as available</li>
+                    <li>Complete the current rental</li>
+                    <li>Update the machine status</li>
+                </ul>
+            </div>
+            <div class="form-actions">
+                <button type="button" onclick="closeCheckinModal()" class="btn-secondary">Cancel</button>
+                <button type="button" onclick="confirmCheckin()" class="btn-primary">Check In Machine</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Maintenance Modal -->
+    <div id="maintenance-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Set Machine to Maintenance</h2>
+                <span class="close" onclick="closeMaintenanceModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to set this machine to maintenance?</p>
+                <p class="maintenance-details">This will:</p>
+                <ul>
+                    <li>Mark the machine as under maintenance</li>
+                    <li>Make it unavailable for rental</li>
+                    <li>Update the machine status</li>
+                </ul>
+            </div>
+            <div class="form-actions">
+                <button type="button" onclick="closeMaintenanceModal()" class="btn-secondary">Cancel</button>
+                <button type="button" onclick="confirmMaintenance()" class="btn-primary">Set to Maintenance</button>
+            </div>
         </div>
     </div>
     

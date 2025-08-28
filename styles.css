@@ -489,6 +489,34 @@ body {
     border-color: #667eea;
 }
 
+.modal-body {
+    padding: 20px;
+}
+
+.modal-body p {
+    margin-bottom: 15px;
+    color: #374151;
+    line-height: 1.5;
+}
+
+.checkin-details,
+.maintenance-details {
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 10px;
+}
+
+.modal-body ul {
+    margin-left: 20px;
+    margin-bottom: 15px;
+}
+
+.modal-body li {
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 5px;
+}
+
 .form-actions {
     padding: 20px;
     display: flex;

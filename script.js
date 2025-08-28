@@ -191,19 +191,54 @@ window.addEventListener('popstate', initializePage);
 
 // Add modal event listeners
 document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('checkout-modal');
-    if (modal) {
-        // Close modal when clicking outside
-        modal.addEventListener('click', function(event) {
-            if (event.target === modal) {
+    const checkoutModal = document.getElementById('checkout-modal');
+    const checkinModal = document.getElementById('checkin-modal');
+    const maintenanceModal = document.getElementById('maintenance-modal');
+    
+    if (checkoutModal) {
+        // Close checkout modal when clicking outside
+        checkoutModal.addEventListener('click', function(event) {
+            if (event.target === checkoutModal) {
                 closeCheckoutModal();
             }
         });
         
-        // Close modal with Escape key
+        // Close checkout modal with Escape key
         document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+            if (event.key === 'Escape' && !checkoutModal.classList.contains('hidden')) {
                 closeCheckoutModal();
+            }
+        });
+    }
+    
+    if (checkinModal) {
+        // Close checkin modal when clicking outside
+        checkinModal.addEventListener('click', function(event) {
+            if (event.target === checkinModal) {
+                closeCheckinModal();
+            }
+        });
+        
+        // Close checkin modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && !checkinModal.classList.contains('hidden')) {
+                closeCheckinModal();
+            }
+        });
+    }
+    
+    if (maintenanceModal) {
+        // Close maintenance modal when clicking outside
+        maintenanceModal.addEventListener('click', function(event) {
+            if (event.target === maintenanceModal) {
+                closeMaintenanceModal();
+            }
+        });
+        
+        // Close maintenance modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && !maintenanceModal.classList.contains('hidden')) {
+                closeMaintenanceModal();
             }
         });
     }
@@ -244,6 +279,50 @@ function closeCheckoutModal() {
         console.log('Modal hidden');
     } else {
         console.log('Modal element not found');
+    }
+}
+
+function showCheckinModal() {
+    console.log('showCheckinModal called');
+    const modal = document.getElementById('checkin-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        console.log('Checkin modal shown');
+    } else {
+        console.log('Checkin modal element not found');
+    }
+}
+
+function closeCheckinModal() {
+    console.log('closeCheckinModal called');
+    const modal = document.getElementById('checkin-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        console.log('Checkin modal hidden');
+    } else {
+        console.log('Checkin modal element not found');
+    }
+}
+
+function showMaintenanceModal() {
+    console.log('showMaintenanceModal called');
+    const modal = document.getElementById('maintenance-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        console.log('Maintenance modal shown');
+    } else {
+        console.log('Maintenance modal element not found');
+    }
+}
+
+function closeMaintenanceModal() {
+    console.log('closeMaintenanceModal called');
+    const modal = document.getElementById('maintenance-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        console.log('Maintenance modal hidden');
+    } else {
+        console.log('Maintenance modal element not found');
     }
 }
 
@@ -344,13 +423,9 @@ async function processCheckout(event) {
     }
 }
 
-async function checkInMachine() {
+async function confirmCheckin() {
     const machineId = getMachineIdFromURL();
-    console.log('Checking in machine:', machineId);
-    
-    if (!confirm('Are you sure you want to check in this machine?')) {
-        return;
-    }
+    console.log('Confirming check-in for machine:', machineId);
     
     try {
         // First, update the rental record to mark it as completed
@@ -387,6 +462,7 @@ async function checkInMachine() {
         }
         
         showMessage('Machine checked in successfully!', 'success');
+        closeCheckinModal();
         
         // Refresh the page to show updated status
         setTimeout(() => {
@@ -396,6 +472,89 @@ async function checkInMachine() {
     } catch (error) {
         console.error('Error checking in machine:', error);
         showMessage('Error checking in machine. Please try again.', 'error');
+    }
+}
+
+async function checkInMachine() {
+    const machineId = getMachineIdFromURL();
+    console.log('Checking in machine:', machineId);
+    
+    if (!confirm('Are you sure you want to check in this machine?')) {
+        return;
+    }
+    
+    try {
+        // First, update the rental record to mark it as completed
+        console.log('Updating rental status...');
+        const { data: rentalUpdate, error: rentalError } = await supabaseClient
+            .from('rentals')
+            .update({ 
+                rental_status: 'Completed',
+                actual_return_date: new Date().toISOString().split('T')[0]
+            })
+            .eq('machine_id', parseInt(machineId))
+            .eq('rental_status', 'Active')
+            .select();
+        
+        if (rentalError) {
+            console.error('Error updating rental:', rentalError);
+            // Continue anyway to update machine status
+        } else {
+            console.log('Rental updated successfully:', rentalUpdate);
+        }
+        
+        // Update machine status to available
+        console.log('Updating machine status...');
+        const { data: machineUpdate, error: machineError } = await supabaseClient
+            .from('machines')
+            .update({ status: 'Available' })
+            .select();
+        
+        if (machineError) {
+            throw machineError;
+        } else {
+            console.log('Machine status updated successfully:', machineUpdate);
+        }
+        
+        showMessage('Machine checked in successfully!', 'success');
+        
+        // Refresh the page to show updated status
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Error checking in machine:', error);
+        showMessage('Error checking in machine. Please try again.', 'error');
+    }
+}
+
+async function confirmMaintenance() {
+    const machineId = getMachineIdFromURL();
+    console.log('Confirming maintenance for machine:', machineId);
+    
+    try {
+        // Update machine status to maintenance
+        const { error: machineError } = await supabaseClient
+            .from('machines')
+            .update({ status: 'maintenance' })
+            .eq('machine_id', parseInt(machineId));
+        
+        if (machineError) {
+            throw machineError;
+        }
+        
+        showMessage('Machine set to maintenance successfully!', 'success');
+        closeMaintenanceModal();
+        
+        // Refresh the page to show updated status
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Error setting machine to maintenance:', error);
+        showMessage('Error updating machine status. Please try again.', 'error');
     }
 }
 
