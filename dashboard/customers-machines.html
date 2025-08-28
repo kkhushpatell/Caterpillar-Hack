@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer & Machine Dashboard</title>
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="../config.js"></script>
+    <style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .dashboard-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .dashboard-header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .section-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .section-header h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            font-weight: 400;
+        }
+        
+        .section-content {
+            padding: 25px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-Available {
+            background: #10b981;
+        }
+        
+        .status-Rented {
+            background: #f59e0b;
+        }
+        
+        .status-Maintenance {
+            background: #ef4444;
+        }
+        
+        .status-unknown {
+            background: #6b7280;
+        }
+        
+        .customer-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .customer-name {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        
+        .customer-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .search-filter {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+        
+        .filter-group input,
+        .filter-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .filter-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .filter-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c53030;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .customer-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1>Customer & Machine Dashboard</h1>
+            <p>Comprehensive overview of customers, machines, and rental status</p>
+        </div>
+        
+        <!-- Search and Filter Section -->
+        <div class="search-filter">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="status-filter">Machine Status:</label>
+                    <select id="status-filter">
+                        <option value="">All Statuses</option>
+                        <option value="Available">Available</option>
+                        <option value="Rented">Rented</option>
+                        <option value="Maintenance">Maintenance</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="customer-search">Search Customer:</label>
+                    <input type="text" id="customer-search" placeholder="Customer name or ID...">
+                </div>
+                <div class="filter-group">
+                    <label for="machine-search">Search Machine:</label>
+                    <input type="text" id="machine-search" placeholder="Machine ID or model...">
+                </div>
+                <button class="filter-btn" onclick="applyFilters()">Apply Filters</button>
+                <button class="filter-btn" onclick="clearFilters()">Clear Filters</button>
+            </div>
+        </div>
+        
+        <!-- Statistics Overview -->
+        <div class="dashboard-grid">
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>📊 Dashboard Statistics</h2>
+                </div>
+                <div class="section-content">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="total-machines">-</div>
+                            <div class="stat-label">Total Machines</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="available-machines">-</div>
+                            <div class="stat-label">Available</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="rented-machines">-</div>
+                            <div class="stat-label">Rented</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="maintenance-machines">-</div>
+                            <div class="stat-label">Maintenance</div>
+                        </div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="total-customers">-</div>
+                            <div class="stat-label">Total Customers</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="active-rentals">-</div>
+                            <div class="stat-label">Active Rentals</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>👥 Customer Overview</h2>
+                </div>
+                <div class="section-content">
+                    <div id="customer-stats">
+                        <div class="loading">Loading customer data...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Customer Details Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>👤 Customer Details</h2>
+            </div>
+            <div class="section-content">
+                <div id="customers-list">
+                    <div class="loading">Loading customers...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Machine Details Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>🚜 Machine Inventory</h2>
+            </div>
+            <div class="section-content">
+                <div id="machines-list">
+                    <div class="loading">Loading machines...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Active Rentals Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <h2>📋 Active Rentals</h2>
+            </div>
+            <div class="section-content">
+                <div id="active-rentals-list">
+                    <div class="loading">Loading active rentals...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let supabase;
+        let allMachines = [];
+        let allCustomers = [];
+        let allRentals = [];
+        
+        // Initialize Supabase
+        async function initializeSupabase() {
+            try {
+                const { createClient } = window.supabase;
+                supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+                await loadDashboardData();
+            } catch (error) {
+                console.error('Error initializing Supabase:', error);
+                showError('Failed to initialize database connection');
+            }
+        }
+        
+        // Load all dashboard data
+        async function loadDashboardData() {
+            try {
+                await Promise.all([
+                    loadMachines(),
+                    loadCustomers(),
+                    loadRentals()
+                ]);
+                
+                updateStatistics();
+                displayCustomers();
+                displayMachines();
+                displayActiveRentals();
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showError('Failed to load dashboard data');
+            }
+        }
+        
+        // Load machines data
+        async function loadMachines() {
+            try {
+                const { data, error } = await supabase
+                    .from('machines')
+                    .select('*')
+                    .order('machine_id');
+                
+                if (error) throw error;
+                allMachines = data || [];
+                console.log('Loaded machines:', data); // Debug log
+            } catch (error) {
+                console.error('Error loading machines:', error);
+                throw error;
+            }
+        }
+        
+        // Load customers data
+        async function loadCustomers() {
+            try {
+                const { data, error } = await supabase
+                    .from('customers')
+                    .select('*')
+                    .order('customer_id');
+                
+                if (error) throw error;
+                allCustomers = data || [];
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                throw error;
+            }
+        }
+        
+        // Load rentals data
+        async function loadRentals() {
+            try {
+                const { data, error } = await supabase
+                    .from('rentals')
+                    .select(`
+                        *,
+                        machines(machine_id, serial_number),
+                        customers(customer_id, name)
+                    `)
+                    .eq('rental_status', 'active')
+                    .order('start_date');
+                
+                if (error) throw error;
+                allRentals = data || [];
+            } catch (error) {
+                console.error('Error loading rentals:', error);
+                throw error;
+            }
+        }
+        
+        // Update dashboard statistics
+        function updateStatistics() {
+            const totalMachines = allMachines.length;
+            const availableMachines = allMachines.filter(m => m.status === 'Available').length;
+            const rentedMachines = allMachines.filter(m => m.status === 'Rented').length;
+            const maintenanceMachines = allMachines.filter(m => m.status === 'Maintenance').length;
+            const totalCustomers = allCustomers.length;
+            const activeRentals = allRentals.length;
+            
+            document.getElementById('total-machines').textContent = totalMachines;
+            document.getElementById('available-machines').textContent = availableMachines;
+            document.getElementById('rented-machines').textContent = rentedMachines;
+            document.getElementById('maintenance-machines').textContent = maintenanceMachines;
+            document.getElementById('total-customers').textContent = totalCustomers;
+            document.getElementById('active-rentals').textContent = activeRentals;
+        }
+        
+        // Display customers
+        function displayCustomers() {
+            const container = document.getElementById('customers-list');
+            if (allCustomers.length === 0) {
+                container.innerHTML = '<p>No customers found.</p>';
+                return;
+            }
+            
+            const customersHtml = allCustomers.map(customer => `
+                <div class="customer-info">
+                    <div class="customer-name">${customer.name || 'Unknown Customer'}</div>
+                    <div class="customer-details">
+                        <div><strong>ID:</strong> ${customer.customer_id}</div>
+                        <div><strong>Company:</strong> ${customer.company_name || 'N/A'}</div>
+                        <div><strong>Contact:</strong> ${customer.contact_number || 'N/A'}</div>
+                        <div><strong>Email:</strong> ${customer.email || 'N/A'}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = customersHtml;
+        }
+        
+        // Display machines
+        function displayMachines() {
+            const container = document.getElementById('machines-list');
+            if (allMachines.length === 0) {
+                container.innerHTML = '<p>No machines found.</p>';
+                return;
+            }
+            
+            const machinesHtml = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Machine ID</th>
+                            <th>Serial Number</th>
+                            <th>Model</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Capacity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${allMachines.map(machine => `
+                            <tr>
+                                <td>${machine.machine_id || 'N/A'}</td>
+                                <td>${machine.serial_number || 'N/A'}</td>
+                                <td>${machine.model_name || machine.model || 'N/A'}</td>
+                                <td>${machine.machine_type || machine.type || 'N/A'}</td>
+                                <td>
+                                    <span class="status-indicator status-${machine.status || 'unknown'}"></span>
+                                    ${machine.status || 'unknown'}
+                                </td>
+                                <td>${machine.weight_capacity || machine.capacity || 'N/A'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = machinesHtml;
+        }
+        
+        // Display active rentals
+        function displayActiveRentals() {
+            const container = document.getElementById('active-rentals-list');
+            if (allRentals.length === 0) {
+                container.innerHTML = '<p>No active rentals found.</p>';
+                return;
+            }
+            
+            const rentalsHtml = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Rental ID</th>
+                            <th>Customer</th>
+                            <th>Machine</th>
+                            <th>Start Date</th>
+                            <th>Expected Return</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${allRentals.map(rental => `
+                            <tr>
+                                <td>${rental.rental_id}</td>
+                                <td>${rental.customers?.name || 'Unknown'}</td>
+                                <td>Machine ${rental.machines?.machine_id || 'Unknown'} (${rental.machines?.serial_number || 'N/A'})</td>
+                                <td>${new Date(rental.start_date).toLocaleDateString()}</td>
+                                <td>${new Date(rental.expected_return_date).toLocaleDateString()}</td>
+                                <td>
+                                    <span class="status-indicator status-rented"></span>
+                                    Active
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = rentalsHtml;
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            const statusFilter = document.getElementById('status-filter').value;
+            const customerSearch = document.getElementById('customer-search').value.toLowerCase();
+            const machineSearch = document.getElementById('machine-search').value.toLowerCase();
+            
+            let filteredMachines = allMachines;
+            let filteredCustomers = allCustomers;
+            
+            // Apply status filter
+            if (statusFilter) {
+                filteredMachines = filteredMachines.filter(m => m.status === statusFilter);
+            }
+            
+            // Apply machine search
+            if (machineSearch) {
+                filteredMachines = filteredMachines.filter(m => 
+                    m.machine_id.toString().includes(machineSearch) ||
+                    (m.model_name && m.model_name.toLowerCase().includes(machineSearch)) ||
+                    (m.serial_number && m.serial_number.toLowerCase().includes(machineSearch))
+                );
+            }
+            
+            // Apply customer search
+            if (customerSearch) {
+                filteredCustomers = filteredCustomers.filter(c => 
+                    c.customer_id.toString().includes(customerSearch) ||
+                    (c.name && c.name.toLowerCase().includes(customerSearch))
+                );
+            }
+            
+            // Update displays with filtered data
+            displayFilteredMachines(filteredMachines);
+            displayFilteredCustomers(filteredCustomers);
+        }
+        
+        // Display filtered machines
+        function displayFilteredMachines(machines) {
+            const container = document.getElementById('machines-list');
+            if (machines.length === 0) {
+                container.innerHTML = '<p>No machines match the current filters.</p>';
+                return;
+            }
+            
+            const machinesHtml = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Machine ID</th>
+                            <th>Serial Number</th>
+                            <th>Model</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Capacity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${machines.map(machine => `
+                            <tr>
+                                <td>${machine.machine_id}</td>
+                                <td>${machine.serial_number || 'N/A'}</td>
+                                <td>${machine.model_name || 'N/A'}</td>
+                                <td>${machine.machine_type || 'N/A'}</td>
+                                <td>
+                                    <span class="status-indicator status-${machine.status}"></span>
+                                    ${machine.status}
+                                </td>
+                                <td>${machine.weight_capacity || 'N/A'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = machinesHtml;
+        }
+        
+        // Display filtered customers
+        function displayFilteredCustomers(customers) {
+            const container = document.getElementById('customers-list');
+            if (customers.length === 0) {
+                container.innerHTML = '<p>No customers match the current filters.</p>';
+                return;
+            }
+            
+            const customersHtml = customers.map(customer => `
+                <div class="customer-info">
+                    <div class="customer-name">${customer.name || 'Unknown Customer'}</div>
+                    <div class="customer-details">
+                        <div><strong>ID:</strong> ${customer.customer_id}</div>
+                        <div><strong>Company:</strong> ${customer.company_name || 'N/A'}</div>
+                        <div><strong>Contact:</strong> ${customer.contact_number || 'N/A'}</div>
+                        <div><strong>Email:</strong> ${customer.email || 'N/A'}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = customersHtml;
+        }
+        
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('status-filter').value = '';
+            document.getElementById('customer-search').value = '';
+            document.getElementById('machine-search').value = '';
+            
+            // Reset to original data
+            displayCustomers();
+            displayMachines();
+        }
+        
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.dashboard-container').insertBefore(errorDiv, document.querySelector('.dashboard-grid'));
+        }
+        
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initializeSupabase);
+    </script>
+</body>
+</html>
