@@ -37,12 +37,12 @@ function updateStatusBadge(status) {
 // Show rental information if machine is rented
 function showRentalInfo(rentalData) {
     const rentalInfo = document.getElementById('rental-info');
-    if (rentalData && rentalData.status === 'active') {
+    if (rentalData) {
         rentalInfo.classList.remove('hidden');
         document.getElementById('customer-name').textContent = rentalData.customer_name || 'N/A';
         document.getElementById('operator-name').textContent = rentalData.operator_name || 'N/A';
         document.getElementById('rental-start').textContent = formatDate(rentalData.start_date);
-        document.getElementById('rental-end').textContent = formatDate(rentalData.end_date);
+        document.getElementById('rental-expected-return').textContent = formatDate(rentalData.expected_return_date);
     } else {
         rentalInfo.classList.add('hidden');
     }
@@ -62,19 +62,27 @@ function displayMachineInfo(machineData) {
         document.getElementById('weight-capacity').textContent = machineData.capacity ? `${machineData.capacity} tons` : 'N/A';
         document.getElementById('purchase-date').textContent = formatDate(machineData.purchase_date);
         document.getElementById('current-status').textContent = machineData.status;
-        document.getElementById('description').textContent = `Model: ${machineData.model_name || 'N/A'}, Category: ${machineData.category || 'N/A'}, Capacity: ${machineData.capacity || 'N/A'} tons`;
+        
+        // Debug: Log the actual status value
+        console.log('Machine status from database:', machineData.status);
+        console.log('Machine data:', machineData);
+        console.log('Rental data:', machineData.rental_data);
+
     
-    // Update status badge
-    updateStatusBadge(machineData.status);
-    
-    // Show rental information if applicable
-    if (machineData.rental_data) {
-        showRentalInfo(machineData.rental_data);
-    }
-    
-    // Hide loading and show machine info
-    loadingElement.classList.add('hidden');
-    machineInfoElement.classList.remove('hidden');
+            // Update status badge
+        updateStatusBadge(machineData.status);
+        
+        // Show rental information if applicable
+        if (machineData.rental_data) {
+            showRentalInfo(machineData.rental_data);
+        }
+        
+        // Update status form visibility based on rental data, not machine status
+        updateStatusFormVisibility(machineData.rental_data ? 'rented' : 'available');
+        
+        // Hide loading and show machine info
+        loadingElement.classList.add('hidden');
+        machineInfoElement.classList.remove('hidden');
 }
 
 // Show error message
@@ -114,27 +122,31 @@ async function fetchMachineData(machineId) {
             // Continue without model data
         }
 
-        // Fetch current rental information if machine is rented
+        // Always check for active rentals regardless of machine status
         let rentalData = null;
-        if (machineData.status === 'rented') {
-            const { data: rental, error: rentalError } = await supabaseClient
-                .from('rentals')
-                .select(`
-                    *,
-                    customer:customers (name),
-                    operator:operators (name)
-                `)
-                .eq('machine_id', machineId)
-                .eq('status', 'active')
-                .single();
+        console.log('Checking for active rentals for machine:', machineId);
+        
+        // Check for active rentals
+        const { data: activeRental, error: rentalError } = await supabaseClient
+            .from('rentals')
+            .select(`
+                *,
+                customer:customers (name),
+                operator:operators (name)
+            `)
+            .eq('machine_id', machineId)
+            .eq('rental_status', 'Active')
+            .single();
 
-            if (!rentalError && rental) {
-                rentalData = {
-                    ...rental,
-                    customer_name: rental.customer?.name,
-                    operator_name: rental.operator?.name
-                };
-            }
+        if (!rentalError && activeRental) {
+            rentalData = {
+                ...activeRental,
+                customer_name: activeRental.customer?.name,
+                operator_name: activeRental.operator?.name
+            };
+            console.log('Active rental found:', rentalData);
+        } else {
+            console.log('No active rental found or error:', rentalError);
         }
 
         // Combine all data
@@ -144,6 +156,7 @@ async function fetchMachineData(machineId) {
             rental_data: rentalData
         };
 
+        console.log('Combined data being returned:', combinedData);
         return combinedData;
 
     } catch (error) {
@@ -175,3 +188,290 @@ document.addEventListener('DOMContentLoaded', initializePage);
 
 // Handle browser back/forward buttons
 window.addEventListener('popstate', initializePage);
+
+// Add modal event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('checkout-modal');
+    if (modal) {
+        // Close modal when clicking outside
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closeCheckoutModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                closeCheckoutModal();
+            }
+        });
+    }
+});
+
+// Status Update Functions
+function showCheckoutForm() {
+    console.log('showCheckoutForm called');
+    const modal = document.getElementById('checkout-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        console.log('Modal shown');
+        
+        // Set default dates
+        const today = new Date().toISOString().split('T')[0];
+        const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        
+        const startDateInput = document.getElementById('start-date');
+        const expectedReturnInput = document.getElementById('expected-return-date');
+        
+        if (startDateInput && expectedReturnInput) {
+            startDateInput.value = today;
+            expectedReturnInput.value = nextWeek;
+        }
+        
+        // Load customers and operators
+        loadCustomersAndOperators();
+    } else {
+        console.log('Modal element not found');
+    }
+}
+
+function closeCheckoutModal() {
+    console.log('closeCheckoutModal called');
+    const modal = document.getElementById('checkout-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        console.log('Modal hidden');
+    } else {
+        console.log('Modal element not found');
+    }
+}
+
+async function loadCustomersAndOperators() {
+    try {
+        // Load customers
+        const { data: customers, error: customersError } = await supabaseClient
+            .from('customers')
+            .select('customer_id, name')
+            .order('name');
+        
+        if (!customersError && customers) {
+            const customerSelect = document.getElementById('customer-select');
+            customerSelect.innerHTML = '<option value="">Select a customer...</option>';
+            customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.customer_id;
+                option.textContent = customer.name;
+                customerSelect.appendChild(option);
+            });
+        }
+        
+        // Load operators
+        const { data: operators, error: operatorsError } = await supabaseClient
+            .from('operators')
+            .select('operator_id, name')
+            .order('name');
+        
+        if (!operatorsError && operators) {
+            const operatorSelect = document.getElementById('operator-select');
+            operatorSelect.innerHTML = '<option value="">Select an operator...</option>';
+            operators.forEach(operator => {
+                const option = document.createElement('option');
+                option.value = operator.operator_id;
+                option.textContent = operator.name;
+                operatorSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading customers/operators:', error);
+    }
+}
+
+async function processCheckout(event) {
+    event.preventDefault();
+    
+    const machineId = getMachineIdFromURL();
+    const customerId = document.getElementById('customer-select').value;
+    const operatorId = document.getElementById('operator-select').value;
+    const startDate = document.getElementById('start-date').value;
+    const expectedReturnDate = document.getElementById('expected-return-date').value;
+    
+    if (!customerId || !operatorId || !startDate || !expectedReturnDate) {
+        showMessage('Please fill in all fields.', 'error');
+        return;
+    }
+    
+    try {
+        // Create new rental with all required fields
+        const { data: rental, error: rentalError } = await supabaseClient
+            .from('rentals')
+            .insert([{
+                machine_id: parseInt(machineId),
+                customer_id: parseInt(customerId),
+                operator_id: parseInt(operatorId),
+                start_date: startDate,
+                expected_return_date: expectedReturnDate,
+                rental_status: 'Active'
+            }])
+            .select()
+            .single();
+        
+        if (rentalError) {
+            throw rentalError;
+        }
+        
+        // Update machine status
+        const { error: machineError } = await supabaseClient
+            .from('machines')
+            .update({ status: 'Rented' })
+            .eq('machine_id', parseInt(machineId));
+        
+        if (machineError) {
+            throw machineError;
+        }
+        
+        showMessage('Machine checked out successfully!', 'success');
+        closeCheckoutModal();
+        
+        // Refresh the page to show updated status
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Error checking out machine:', error);
+        showMessage('Error checking out machine. Please try again.', 'error');
+    }
+}
+
+async function checkInMachine() {
+    const machineId = getMachineIdFromURL();
+    console.log('Checking in machine:', machineId);
+    
+    if (!confirm('Are you sure you want to check in this machine?')) {
+        return;
+    }
+    
+    try {
+        // First, update the rental record to mark it as completed
+        console.log('Updating rental status...');
+        const { data: rentalUpdate, error: rentalError } = await supabaseClient
+            .from('rentals')
+            .update({ 
+                rental_status: 'Completed',
+                actual_return_date: new Date().toISOString().split('T')[0]
+            })
+            .eq('machine_id', parseInt(machineId))
+            .eq('rental_status', 'Active')
+            .select();
+        
+        if (rentalError) {
+            console.error('Error updating rental:', rentalError);
+            // Continue anyway to update machine status
+        } else {
+            console.log('Rental updated successfully:', rentalUpdate);
+        }
+        
+        // Update machine status to available
+        console.log('Updating machine status...');
+        const { data: machineUpdate, error: machineError } = await supabaseClient
+            .from('machines')
+            .update({ status: 'Available' })
+            .eq('machine_id', parseInt(machineId))
+            .select();
+        
+        if (machineError) {
+            throw machineError;
+        } else {
+            console.log('Machine status updated successfully:', machineUpdate);
+        }
+        
+        showMessage('Machine checked in successfully!', 'success');
+        
+        // Refresh the page to show updated status
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Error checking in machine:', error);
+        showMessage('Error checking in machine. Please try again.', 'error');
+    }
+}
+
+async function setMaintenance() {
+    const machineId = getMachineIdFromURL();
+    
+    if (!confirm('Are you sure you want to set this machine to maintenance?')) {
+        return;
+    }
+    
+    try {
+        // Update machine status to maintenance
+        const { error: machineError } = await supabaseClient
+            .from('machines')
+            .update({ status: 'maintenance' })
+            .eq('machine_id', parseInt(machineId));
+        
+        if (machineError) {
+            throw machineError;
+        }
+        
+        showMessage('Machine set to maintenance successfully!', 'success');
+        
+        // Refresh the page to show updated status
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Error setting machine to maintenance:', error);
+        showMessage('Error updating machine status. Please try again.', 'error');
+    }
+}
+
+function showMessage(message, type) {
+    // Remove existing messages
+    const existingMessages = document.querySelectorAll('.message');
+    existingMessages.forEach(msg => msg.remove());
+    
+    // Create new message
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    messageDiv.textContent = message;
+    
+    // Insert after the header
+    const header = document.querySelector('.header');
+    header.parentNode.insertBefore(messageDiv, header.nextSibling);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 5000);
+}
+
+// Update status form visibility based on current status
+function updateStatusFormVisibility(status) {
+    const checkinForm = document.getElementById('checkin-form');
+    const checkoutForm = document.getElementById('checkout-form');
+    
+    console.log('Updating form visibility for status:', status);
+    
+    // Check for various possible status values (case-insensitive)
+    const isRented = status && (
+        status.toLowerCase() === 'rented' ||
+        status.toLowerCase() === 'rent' ||
+        status.toLowerCase() === 'out' ||
+        status.toLowerCase() === 'checked out'
+    );
+    
+    if (isRented) {
+        checkinForm.classList.remove('hidden');
+        checkoutForm.classList.add('hidden');
+        console.log('Showing check-in form, hiding check-out form');
+    } else {
+        checkinForm.classList.add('hidden');
+        checkoutForm.classList.remove('hidden');
+        console.log('Showing check-out form, hiding check-in form');
+    }
+}

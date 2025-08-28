@@ -74,22 +74,82 @@
                             <span id="rental-start"></span>
                         </div>
                         <div class="info-item">
-                            <span class="label">End Date:</span>
-                            <span id="rental-end"></span>
+                            <span class="label">Expected Return:</span>
+                            <span id="rental-expected-return"></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Update Forms -->
+                    <div class="status-actions">
+                        <h4>Update Status</h4>
+                        
+                        <!-- Check-in Form (when machine is rented) -->
+                        <div id="checkin-form" class="status-form hidden">
+                            <button onclick="checkInMachine()" class="action-btn checkin-btn">Check In Machine</button>
+                            <p class="form-help">This will mark the machine as available and complete the current rental.</p>
+                        </div>
+                        
+                        <!-- Check-out Form (when machine is available) -->
+                        <div id="checkout-form" class="status-form">
+                            <button onclick="showCheckoutForm()" class="action-btn checkout-btn">Check Out Machine</button>
+                            <p class="form-help">Rent this machine to a customer.</p>
+                        </div>
+                        
+                        <!-- Maintenance Form -->
+                        <div class="status-form">
+                            <button onclick="setMaintenance()" class="action-btn maintenance-btn">Set to Maintenance</button>
+                            <p class="form-help">Mark machine as under maintenance.</p>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="description-card">
-                <h3>Description</h3>
-                <p id="description"></p>
-            </div>
+
         </div>
         
         <div id="error" class="error hidden">
             <h2>Machine Not Found</h2>
             <p>The requested machine could not be found in our database.</p>
+        </div>
+    </div>
+    
+    <!-- Checkout Modal -->
+    <div id="checkout-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Check Out Machine</h2>
+                <span class="close" onclick="closeCheckoutModal()">&times;</span>
+            </div>
+            <form id="checkout-form-modal" onsubmit="processCheckout(event)">
+                <div class="form-group">
+                    <label for="customer-select">Customer:</label>
+                    <select id="customer-select" required>
+                        <option value="">Select a customer...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="operator-select">Operator:</label>
+                    <select id="operator-select" required>
+                        <option value="">Select an operator...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="start-date">Start Date:</label>
+                    <input type="date" id="start-date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="expected-return-date">Expected Return Date:</label>
+                    <input type="date" id="expected-return-date" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" onclick="closeCheckoutModal()" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Check Out Machine</button>
+                </div>
+            </form>
         </div>
     </div>
     
