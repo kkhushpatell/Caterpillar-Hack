@@ -6,9 +6,9 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #0a0a0a;
     min-height: 100vh;
-    color: #333;
+    color: #ffffff;
 }
 
 .container {
@@ -39,11 +39,12 @@ body {
 }
 
 .machine-info {
-    background: white;
+    background: #1a1a1a;
     border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
     overflow: hidden;
     animation: slideUp 0.5s ease-out;
+    border: 1px solid #333333;
 }
 
 @keyframes slideUp {
@@ -58,11 +59,13 @@ body {
 }
 
 .header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: #ffffff;
     padding: 30px;
     text-align: center;
     position: relative;
+    border: 1px solid #333333;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .header h1 {
@@ -83,17 +86,17 @@ body {
 
 .status-badge.available {
     background: #10b981;
-    color: white;
+    color: #000000;
 }
 
 .status-badge.rented {
-    background: #f59e0b;
-    color: white;
+    background: #ffd700;
+    color: #000000;
 }
 
 .status-badge.maintenance {
     background: #ef4444;
-    color: white;
+    color: #ffffff;
 }
 
 .info-grid {
@@ -104,14 +107,16 @@ body {
 }
 
 .info-card {
-    background: #f8fafc;
+    background: #2d2d2d;
     border-radius: 15px;
     padding: 25px;
-    border-left: 5px solid #667eea;
+    border-left: 5px solid #ffd700;
+    border: 1px solid #444444;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .info-card h3 {
-    color: #667eea;
+    color: #ffd700;
     margin-bottom: 20px;
     font-size: 1.3rem;
     font-weight: 600;
@@ -131,12 +136,12 @@ body {
 
 .label {
     font-weight: 600;
-    color: #64748b;
+    color: #cccccc;
     min-width: 120px;
 }
 
 .info-item span:last-child {
-    color: #1e293b;
+    color: #ffffff;
     font-weight: 500;
 }
 
@@ -341,7 +346,7 @@ body {
 }
 
 .status-actions h4 {
-    color: #667eea;
+    color: #ffd700;
     margin-bottom: 15px;
     font-size: 1.1rem;
 }
@@ -349,14 +354,16 @@ body {
 .status-form {
     margin-bottom: 15px;
     padding: 15px;
-    background: #f8fafc;
+    background: #2d2d2d;
     border-radius: 10px;
-    border-left: 3px solid #e2e8f0;
+    border-left: 3px solid #ffd700;
+    border: 1px solid #444444;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .action-btn {
-    background: #667eea;
-    color: white;
+    background: #ffd700;
+    color: #000000;
     border: none;
     padding: 10px 20px;
     border-radius: 8px;
@@ -370,7 +377,7 @@ body {
 
 .action-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
 }
 
 .checkin-btn {
@@ -399,7 +406,7 @@ body {
 
 .form-help {
     font-size: 0.8rem;
-    color: #64748b;
+    color: #cccccc;
     margin: 0;
     line-height: 1.4;
 }
@@ -423,24 +430,26 @@ body {
 }
 
 .modal-content {
-    background: white;
+    background: #1a1a1a;
     border-radius: 20px;
     padding: 0;
     width: 90%;
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    border: 1px solid #333333;
 }
 
 .modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: #ffffff;
     padding: 20px;
     border-radius: 20px 20px 0 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border: 1px solid #333333;
 }
 
 .modal-header h2 {
@@ -468,7 +477,7 @@ body {
 .form-group label {
     display: block;
     font-weight: 600;
-    color: #64748b;
+    color: #ffd700;
     margin-bottom: 8px;
 }
 
@@ -476,33 +485,36 @@ body {
 .form-group input {
     width: 100%;
     padding: 12px;
-    border: 2px solid #e2e8f0;
+    border: 2px solid #444444;
     border-radius: 8px;
     font-size: 1rem;
-    background: white;
+    background: #2d2d2d;
+    color: #ffffff;
     transition: border-color 0.3s;
 }
 
 .form-group select:focus,
 .form-group input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #ffd700;
+    box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
 }
 
 .modal-body {
     padding: 20px;
+    color: #ffffff;
 }
 
 .modal-body p {
     margin-bottom: 15px;
-    color: #374151;
+    color: #ffffff;
     line-height: 1.5;
 }
 
 .checkin-details,
 .maintenance-details {
     font-weight: 600;
-    color: #667eea;
+    color: #ffd700;
     margin-bottom: 10px;
 }
 
@@ -512,7 +524,7 @@ body {
 }
 
 .modal-body li {
-    color: #6b7280;
+    color: #cccccc;
     line-height: 1.6;
     margin-bottom: 5px;
 }
@@ -522,7 +534,7 @@ body {
     display: flex;
     gap: 15px;
     justify-content: flex-end;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid #444444;
 }
 
 .btn-primary,
@@ -537,22 +549,22 @@ body {
 }
 
 .btn-primary {
-    background: #10b981;
-    color: white;
+    background: #ffd700;
+    color: #000000;
 }
 
 .btn-primary:hover {
-    background: #059669;
+    background: #ffed4e;
     transform: translateY(-2px);
 }
 
 .btn-secondary {
-    background: #6b7280;
-    color: white;
+    background: #444444;
+    color: #ffffff;
 }
 
 .btn-secondary:hover {
-    background: #4b5563;
+    background: #555555;
 }
 
 /* Success/Error Messages */
